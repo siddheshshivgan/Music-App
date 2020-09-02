@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">MusicApp</string>
+    <string name="login">Login</string>
+    <string name="email">Email ID</string>
+    <string name="pass">Password</string>
+    <string name="no_reg">Not Registered?</string>
+    <string name="openNav">Navigation Drawer opened</string>
+    <string name="closeNav">Navigation Drawer closed</string>
+</resources>

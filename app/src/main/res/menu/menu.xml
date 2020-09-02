@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:aapt="http://schemas.android.com/aapt">
+    <item android:title="Profile">
+        <menu>
+            <item android:icon="@android:drawable/ic_input_add" android:id="@+id/name" android:title="Name"/>
+            <item android:icon="@android:drawable/ic_dialog_email" android:id="@+id/email" android:title="Email"/>
+            <item android:icon="@android:drawable/ic_menu_call" android:id="@+id/phone" android:title="Phone No"/>
+            <item android:icon="@android:drawable/ic_dialog_info" android:id="@+id/info" android:title="Info"/>
+        </menu>
+    </item>
+</menu>
