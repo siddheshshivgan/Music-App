@@ -92,8 +92,8 @@ public class HomeActivity extends AppCompatActivity implements OnNavigationItemS
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == RESULT_OK) {
-            this.profile.setImageURI(this.image_uri);
+        if (resultCode == RESULT_OK) {
+            this.profile.setImageURI(image_uri);
         }
     }
 
