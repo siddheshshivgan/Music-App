@@ -11,8 +11,13 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
     }
 
-    public void onButtonClick(View v) {
+    public void onLogInButtonClick(View v) {
         Intent myIntent = new Intent(this, HomeActivity.class);
+        startActivity(myIntent);
+    }
+
+    public void onLinkClick(View v) {
+        Intent myIntent = new Intent(this, RegisterActivity.class);
         startActivity(myIntent);
     }
 }

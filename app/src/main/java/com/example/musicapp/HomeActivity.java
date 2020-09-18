@@ -3,38 +3,44 @@ package com.example.musicapp;
 import android.Manifest;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore.Images.Media;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.drawerlayout.widget.DrawerLayout;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.navigation.NavigationView.OnNavigationItemSelectedListener;
-import com.karumi.dexter.Dexter;
-import com.karumi.dexter.PermissionToken;
-import com.karumi.dexter.listener.PermissionDeniedResponse;
-import com.karumi.dexter.listener.PermissionGrantedResponse;
-import com.karumi.dexter.listener.PermissionRequest;
-import com.karumi.dexter.listener.single.PermissionListener;
+
+import net.steamcrafted.materialiconlib.MaterialMenuInflater;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
 
 public class HomeActivity extends AppCompatActivity implements OnNavigationItemSelectedListener {
     private static final int IMAGE_CAPTURE_CODE = 1001;
+    private static final int PERMISSION_CODE = 1000;
     private DrawerLayout drawerLayout;
-    Uri image_uri;
-    private NavigationView navigationView;
-    CircleImageView profile;
     private Toolbar toolbar;
+    private NavigationView navigationView;
+    Uri image_uri;
+    CircleImageView profile;
+//    ListView listView;
+//    String[] listItem;
 
-    /* access modifiers changed from: protected */
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
@@ -44,6 +50,19 @@ public class HomeActivity extends AppCompatActivity implements OnNavigationItemS
         navigationView = findViewById(R.id.nav_view);
         profile = navigationView.inflateHeaderView(R.layout.nav_header).findViewById(R.id.profile);
         profile.setImageResource(R.drawable.ic_baseline_person_24);
+//        listView=(ListView)findViewById(R.id.listView);
+//        listItem = getResources().getStringArray(R.array.playlist);
+//        final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+//                android.R.layout.simple_list_item_1, android.R.id.text1, listItem);
+//        listView.setAdapter(adapter);
+//
+//        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+//                String value=adapter.getItem(position);
+//                Toast.makeText(getApplicationContext(),value,Toast.LENGTH_SHORT).show();
+//            }
+//        });
 
         ActionBarDrawerToggle actionBarDrawerToggle = new ActionBarDrawerToggle(
                 this,
@@ -58,27 +77,16 @@ public class HomeActivity extends AppCompatActivity implements OnNavigationItemS
 
         profile.setOnClickListener(new OnClickListener() {
             public void onClick(View view) {
-                camPermission();
+                if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED || checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
+                    String[] permission = {Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+                    requestPermissions(permission, PERMISSION_CODE);
+                } else {
+                    cameraIntent();
+                }
             }
         });
     }
 
-    private void camPermission() {
-        Dexter.withContext(this).withPermission(Manifest.permission.CAMERA).withListener(new PermissionListener() {
-            public void onPermissionGranted(PermissionGrantedResponse permissionGrantedResponse) {
-                cameraIntent();
-            }
-
-            public void onPermissionDenied(PermissionDeniedResponse permissionDeniedResponse) {
-            }
-
-            public void onPermissionRationaleShouldBeShown(PermissionRequest permissionRequest, PermissionToken permissionToken) {
-                permissionToken.continuePermissionRequest();
-            }
-        }).check();
-    }
-
-    /* access modifiers changed from: private */
     private void cameraIntent() {
         ContentValues contentValues = new ContentValues();
         contentValues.put("title", "New Photo");
@@ -86,7 +94,7 @@ public class HomeActivity extends AppCompatActivity implements OnNavigationItemS
         image_uri = getContentResolver().insert(Media.EXTERNAL_CONTENT_URI, contentValues);
         Toast.makeText(this, "Camera Opened", Toast.LENGTH_SHORT).show();
         Intent cameraIntent = new Intent("android.media.action.IMAGE_CAPTURE");
-        cameraIntent.putExtra("output",image_uri);
+        cameraIntent.putExtra("output", image_uri);
         startActivityForResult(cameraIntent, IMAGE_CAPTURE_CODE);
     }
 
@@ -94,6 +102,19 @@ public class HomeActivity extends AppCompatActivity implements OnNavigationItemS
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
             this.profile.setImageURI(image_uri);
+
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                cameraIntent();
+            } else {
+                Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show();
+            }
+
         }
     }
 
@@ -103,5 +124,7 @@ public class HomeActivity extends AppCompatActivity implements OnNavigationItemS
     }
 
     public void onPointerCaptureChanged(boolean hasCapture) {
+
     }
+
 }
