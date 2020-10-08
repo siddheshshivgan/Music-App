@@ -11,27 +11,5 @@
     <string name="closeNav">Navigation Drawer closed</string>
     <string name="profile">Profile</string>
     <string name="info">Info</string>
-    <string-array name="playlist">
-        <item></item>
-        <item>Song1</item>
-        <item>Song2</item>
-        <item>Song3</item>
-        <item>Song4</item>
-        <item>Song5</item>
-        <item>Song6</item>
-        <item>Song7</item>
-        <item>Song8</item>
-        <item>Song9</item>
-        <item>Song10</item>
-        <item>Song1</item>
-        <item>Song2</item>
-        <item>Song3</item>
-        <item>Song4</item>
-        <item>Song5</item>
-        <item>Song6</item>
-        <item>Song7</item>
-        <item>Song8</item>
-        <item>Song9</item>
-        <item>Song10</item>
-    </string-array>
+    <string name="confirm_password">Confirm Password</string>
 </resources>

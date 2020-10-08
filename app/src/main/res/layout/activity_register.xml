@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:aapt="http://schemas.android.com/aapt"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent" android:layout_height="match_parent">
+    android:layout_width="match_parent" android:background="@drawable/new_login_gradients" android:layout_height="match_parent">
 
     <TextView
         android:id="@+id/textView"
@@ -20,19 +20,21 @@
 
     <Button
         android:id="@+id/regButton"
-        android:layout_width="149dp"
-        android:layout_height="51dp"
+        android:layout_width="213dp"
+        android:layout_height="52dp"
         android:layout_marginStart="101dp"
-        android:layout_marginTop="48dp"
-        android:layout_marginEnd="103dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="101dp"
         android:layout_marginBottom="183dp"
+        android:background="@drawable/background_login"
         android:onClick="onRegButtonClick"
         android:text="@string/reg"
+        android:textSize="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.517"
+        app:layout_constraintHorizontal_bias="0.25"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/regPass" />
+        app:layout_constraintTop_toBottomOf="@+id/confPass" />
 
     <EditText
         android:id="@+id/Name"
@@ -82,12 +84,25 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="100dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="6dp"
         android:ems="10"
         android:hint="@string/pass"
         android:inputType="textPassword"
-        app:layout_constraintBottom_toTopOf="@+id/regButton"
+        app:layout_constraintBottom_toTopOf="@+id/confPass"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/regEmail" />
+
+    <EditText
+        android:id="@+id/confPass"
+        android:layout_width="209dp"
+        android:layout_height="42dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginEnd="99dp"
+        android:layout_marginBottom="8dp"
+        android:inputType="textPassword"
+        android:hint="@string/confirm_password"
+        app:layout_constraintBottom_toTopOf="@+id/regButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/regPass" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

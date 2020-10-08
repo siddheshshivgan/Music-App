@@ -25,8 +25,6 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.navigation.NavigationView.OnNavigationItemSelectedListener;
 
-import net.steamcrafted.materialiconlib.MaterialMenuInflater;
-
 import de.hdodenhof.circleimageview.CircleImageView;
 
 
