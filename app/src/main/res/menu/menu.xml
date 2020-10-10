@@ -4,7 +4,7 @@
     <item android:title="@string/profile">
         <menu>
             <item
-                android:icon="@android:drawable/ic_input_add"
+                android:icon="@drawable/gps"
                 android:id="@+id/name"
                 android:title="@string/name"
 
