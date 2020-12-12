@@ -1,14 +1,15 @@
 package com.example.musicapp;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -16,69 +17,94 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.provider.MediaStore.Images.Media;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.navigation.NavigationView.OnNavigationItemSelectedListener;
-
+import com.google.android.material.tabs.TabLayout;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import de.hdodenhof.circleimageview.CircleImageView;
-
 
 public class HomeActivity extends AppCompatActivity implements OnNavigationItemSelectedListener, LocationListener {
-    private static final int LOCATION_CODE = 1002;
+    private static final int LOC_AND_STORAGE_CODE = 1002;
     private static final int IMAGE_CAPTURE_CODE = 1001;
     private static final int PERMISSION_CODE = 1000;
     private DrawerLayout drawerLayout;
     private Toolbar toolbar;
-    TextView city,state,country;
+    private SQLiteDatabase db;
+    private SQLiteOpenHelper openHelper;
+    static ArrayList<MusicFiles> musicFiles;
+    TextView city,state,country,username;
+    private Menu menu;
     private NavigationView navigationView;
+    MenuItem mail,phone_no;
     LocationManager locationManager;
     Uri image_uri;
-    CircleImageView profile;
+    ImageView profile;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         toolbar = findViewById(R.id.main_toolbar);
-        state = findViewById(R.id.state);
-//        city = findViewById(R.id.city);
+//        state = findViewById(R.id.state);
+        city = findViewById(R.id.city);
 //        country = findViewById(R.id.country);
+//        mail = menu.findItem(R.id.email);
+//        phone_no = menu.findItem(R.id.phone);
         setSupportActionBar(toolbar);
+        DatabaseHelper openHelper = new DatabaseHelper(this);
+        db = openHelper.getReadableDatabase();
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
-        profile = navigationView.inflateHeaderView(R.layout.nav_header).findViewById(R.id.profile);
+        View headerView = navigationView.getHeaderView(0);
+        username = headerView.findViewById(R.id.username);
+        profile = headerView.findViewById(R.id.profile);
         profile.setImageResource(R.drawable.ic_baseline_person_24);
         grantPermission();
         checkLocEnableOrNot(); //direct to GPS settings
         getLocation();
+
         ActionBarDrawerToggle actionBarDrawerToggle = new ActionBarDrawerToggle(
                 this,
                 drawerLayout,
                 toolbar,
                 R.string.openNav,
                 R.string.closeNav
-        );
+        ){
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                Intent intent = getIntent();
+                String uName = intent.getStringExtra("username");
+                if (uName == null || uName.equals(""))
+                    uName="Username";
+                username.setText(uName);
+                }
+        };
         drawerLayout.addDrawerListener(actionBarDrawerToggle);
         actionBarDrawerToggle.syncState();
         navigationView.setNavigationItemSelectedListener(this);
@@ -90,9 +116,81 @@ public class HomeActivity extends AppCompatActivity implements OnNavigationItemS
                     requestPermissions(permission, PERMISSION_CODE);
                 } else {
                     cameraIntent();
-                }
+
             }
+        }
         });
+    }
+
+    private void initViewPager() {
+        ViewPager viewPager = findViewById(R.id.viewpager);
+        TabLayout tabLayout = findViewById(R.id.tab_layout);
+        ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
+        viewPagerAdapter.addFragments(new SongFragment(),"Songs");
+        viewPagerAdapter.addFragments(new AlbumFragment(),"Albums");
+        viewPager.setAdapter(viewPagerAdapter);
+        tabLayout.setupWithViewPager(viewPager);
+    }
+
+    public static class ViewPagerAdapter extends FragmentPagerAdapter{
+
+        private ArrayList<Fragment> fragments;
+        private ArrayList<String> titles;
+
+        public ViewPagerAdapter(@NonNull FragmentManager fm) {
+            super(fm);
+            this.fragments = new ArrayList<>();
+            this.titles = new ArrayList<>();
+        }
+        void addFragments(Fragment fragment,String title)
+        {
+            fragments.add(fragment);
+            titles.add(title);
+        }
+
+        @NonNull
+        @Override
+        public Fragment getItem(int position) {
+            return fragments.get(position);
+        }
+
+        @Override
+        public int getCount() {
+            return fragments.size();
+        }
+
+        @Nullable
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return titles.get(position);
+        }
+    }
+    public static ArrayList<MusicFiles> getAllAudio(Context context){
+        ArrayList<MusicFiles> tempAudioList = new ArrayList<>();
+        Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        String[] projetion = {
+                MediaStore.Audio.Media.ALBUM,
+                MediaStore.Audio.Media.TITLE,
+                MediaStore.Audio.Media.DURATION,
+                MediaStore.Audio.Media.DATA,
+                MediaStore.Audio.Media.ARTIST,
+        };
+        Cursor cursor = context.getContentResolver().query(uri,projetion,null,null,null);
+        if(cursor!=null){
+            while (cursor.moveToNext()){
+                String album =cursor.getString(0);
+                String title =cursor.getString(1);
+                String duration =cursor.getString(2);
+                String path =cursor.getString(3);
+                String artist =cursor.getString(4);
+
+                MusicFiles musicFiles= new MusicFiles(path, title, artist, album, duration);
+                Log.e("Path:"+path,"Album"+album);
+                tempAudioList.add(musicFiles);
+            }
+            cursor.close();
+        }
+        return tempAudioList;
     }
 
     private void getLocation() {
@@ -134,8 +232,14 @@ public class HomeActivity extends AppCompatActivity implements OnNavigationItemS
 
     private void grantPermission() {
         if(ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(getApplicationContext(),Manifest.permission.ACCESS_COARSE_LOCATION)!=PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION},LOCATION_CODE);
+                && ContextCompat.checkSelfPermission(this,Manifest.permission.WRITE_EXTERNAL_STORAGE)!=PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(getApplicationContext(),Manifest.permission.ACCESS_COARSE_LOCATION)!=PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(getApplicationContext(),Manifest.permission.CAMERA)!=PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.CAMERA}, PERMISSION_CODE);
+        }
+        else{
+            musicFiles = getAllAudio(this);
+            initViewPager();
         }
     }
 
@@ -162,18 +266,28 @@ public class HomeActivity extends AppCompatActivity implements OnNavigationItemS
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == PERMISSION_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                cameraIntent();
+                musicFiles = getAllAudio(this);
+                initViewPager();
             } else {
                 Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show();
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_CODE);
             }
 
         }
     }
 
     public boolean onNavigationItemSelected(MenuItem item) {
-        Toast.makeText(this, item.toString(), Toast.LENGTH_SHORT).show();
+        if (item.toString().equals("Location"))
+            Toast.makeText(this, item.toString(), Toast.LENGTH_SHORT).show();
         return true;
     }
+
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.menu,menu);
+//        this.menu = menu;
+//        return super.onCreateOptionsMenu(menu);
+//    }
 
     public void onPointerCaptureChanged(boolean hasCapture) {
 
@@ -184,8 +298,9 @@ public class HomeActivity extends AppCompatActivity implements OnNavigationItemS
         try {
             Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
             List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
-//            city.setText(addresses.get(0).getLocality());
-                state.setText(addresses.get(0).getAdminArea());
+            String loc =addresses.get(0).getLocality()+", "+addresses.get(0).getAdminArea()+", "+addresses.get(0).getCountryName();
+            city.setText(loc);
+//            state.setText(addresses.get(0).getAdminArea());
 //            country.setText(addresses.get(0).getCountryName());
 //            tvPin.setText(addresses.get(0).getPostalCode());
 //            tvLocality.setText(addresses.get(0).getAddressLine(0));

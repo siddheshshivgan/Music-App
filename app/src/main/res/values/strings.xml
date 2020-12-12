@@ -10,6 +10,8 @@
     <string name="openNav">Navigation Drawer opened</string>
     <string name="closeNav">Navigation Drawer closed</string>
     <string name="profile">Profile</string>
-    <string name="info">Info</string>
+    <string name="loc">Location</string>
     <string name="confirm_password">Confirm Password</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
